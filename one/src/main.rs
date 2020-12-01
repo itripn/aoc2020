@@ -11,6 +11,9 @@ fn main() {
     println!("Triple answer is: {}", find_triple_sum( &input, 2020 ) );
 }
 
+// Find the pair of numbers in the input that sum to `expected`, and return their product,
+// or 0 if not found
+//
 fn find_pair_sum( inp : &Vec<i32>, expected : i32 ) -> i32 {
 
     let mut start_idx = 0;
@@ -29,6 +32,9 @@ fn find_pair_sum( inp : &Vec<i32>, expected : i32 ) -> i32 {
     0
 }
 
+// Find the triple of numbers in the input that sum to `expected`, and return their product,
+// or 0 if not found
+//
 fn find_triple_sum( inp : &Vec<i32>, expected : i32 ) -> i32 {
 
     let mut start_idx = 0;
