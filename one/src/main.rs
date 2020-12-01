@@ -15,7 +15,9 @@ fn find_pair_sum( inp : &Vec<i32>, expected : i32 ) -> i32 {
 
     let mut start_idx = 0;
     for num in &inp[start_idx..] {
+
         for num2 in &inp[start_idx+1..] {
+
             if num + num2 == expected {
                 return num * num2;
             }
@@ -37,7 +39,6 @@ fn find_triple_sum( inp : &Vec<i32>, expected : i32 ) -> i32 {
             for num3 in &inp[start_idx+2..] {
 
                 if num + num2 + num3 == expected {
-                    println!("{}, {}, {}", num, num2, num3);
                     return num * num2 * num3;
                 }
             }
