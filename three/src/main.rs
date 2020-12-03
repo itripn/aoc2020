@@ -22,6 +22,8 @@ fn main() {
     println!("{} entries", map.len() );
     println!("Expanding map width...");
 
+    // Bad -- hard coding the maxium right step length, should pull it from the slope tuples
+    //
     let new_width = 7 * map.len();
     let line_multiplier = new_width / map[0].len() + 1;
     println!("new width: {}, line mult: {}", new_width, line_multiplier );
@@ -42,6 +44,8 @@ fn main() {
     println!("Total tree count: {}", total_tree_count );
 }
 
+// Traverse the passed in tree map using the given slope (right, down) and return the number of trees encountered
+//
 fn traverse_map_and_count_trees( trees_map : &Vec<String>, last_line : usize, slope : ( usize, usize ) ) -> u32 {
 
     let mut line_idx : usize = 0;
