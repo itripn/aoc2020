@@ -12,6 +12,7 @@ fn main() {
         // Consumes the iterator, returns an (Optional) String
 
         for line in lines {
+
             if let Ok(pwline) = line {
 
                 // Challenge 2a
@@ -25,7 +26,6 @@ fn main() {
                 if check_new_pw_policy( &pwline ) {
                     new_policy_valid_count += 1;
                 }
-
             }
         }
     }
