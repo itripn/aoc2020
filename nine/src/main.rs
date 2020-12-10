@@ -7,6 +7,8 @@ fn main() {
 
     let mut data : Vec<u64> = Vec::new();
 
+    // Read lines into a vector
+    //
     if let Ok(lines) = read_lines("./input.txt") {
 
         // Consumes the iterator, returns an (Optional) String
@@ -22,26 +24,66 @@ fn main() {
         }
     }
 
-    // let end_preamble : usize = 25;
+    // Walk through the vector starting past the preamble, and look
+    // for a pair of numbers previous to the current number which
+    // add up to that number. 
+    //
     let mut current_index : usize = 25;
-
+    let mut bad_num : u64;
     loop {
 
-        let d = data[current_index];
+        bad_num = data[current_index];
 
-        match find_summing_pair( &data, current_index, d) {
+        match find_summing_pair( &data, current_index, bad_num) {
 
-            Some(pair) => {
-                println!("{} is sum of {} + {}", d, pair.0, pair.1);
+            Some(_pair) => {
+                // println!("{} is sum of {} + {}", bad_num, pair.0, pair.1);
             },
 
             None => {
-                println!("{} is bad", d);
+                println!("{} is bad", bad_num);
                 break;
             }
         }
 
         current_index = current_index + 1;
+    }
+
+    // Now we have the bad number in 'd', let's look for a contiguous block
+    // of numbers (more than 2) whose sum is this bad number.
+    //
+    current_index = 25;
+    let mut sum : u64 = 0;
+    let mut bottom : usize;
+    let mut top : usize = 0;
+    let mut found = false;
+
+    loop {
+
+        bottom = current_index;
+        for n in current_index..data.len()-1 {
+
+            sum = sum + data[n];
+            if sum == bad_num {
+                top = n;
+                found = true;
+                break;
+            }
+            else if sum > bad_num {
+                sum = 0;
+                current_index = current_index + 1;
+                break;                
+            }
+        }
+
+        // If we found a set of numbers that works, get the min and max and print their sum
+        // as the problem solution
+        //
+        if found {
+            let slice : Vec<u64> = data[bottom..top].to_vec();
+            println!("Sum of smallest and largest is {}", slice.iter().max().unwrap() + slice.iter().min().unwrap() );
+            break;
+        }
     }
 }
 
@@ -55,7 +97,7 @@ fn find_summing_pair( data : &Vec<u64>, upto : usize, expected : u64 ) -> Option
         for num2 in data[start_idx+1..upto].into_iter() {
 
             if num + num2 == expected && num != num2 {
-                return Some( (*num,*num2) );
+                return Some( (*num, *num2) );
             }
         }
 
