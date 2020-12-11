@@ -4,7 +4,7 @@ use std::path::Path;
 
 fn main() {
 
-    let mut data : Vec<i32> = Vec::new();
+    let mut data : Vec<Vec<char>> = Vec::new();
 
     // Read lines into a vector
     //
@@ -13,38 +13,44 @@ fn main() {
         // Consumes the iterator, returns an (Optional) String
         for line in lines {
 
-            // Collapse all lines for a group into a single line
+
             if let Ok(l) = line {
                 if l.len() > 0 {
-                    data.push( l.parse::<i32>().unwrap() );
+                    let row : Vec<char> = l.chars().collect();
+                    data.push( row );
                 }
             }
         }
     }
 
-    data.sort();
+    let mut seated;
+    let mut last_seated = 0;
+    loop {
 
-    let mut ones = 1;
-    let mut threes = 1;
-
-    for i in 0..data.len()-1 {
-
-        let cur = data[i];
-        let nxt = data[i+1];
-
-        if nxt - cur == 1 {
-            ones = ones + 1;
-        }
-        else if nxt - cur == 3 {
-            threes = threes + 1;
+        seated = perform_round( &data );
+        if last_seated == seated {
+            break;
         }
         else {
-            panic!("got bad delta!");
+            last_seated = seated;
         }
     }
-
-    println!("Ones count {} * Threes count {} = {}", ones, threes, ones * threes );
 }
+
+fn perform_round( seat_map : &Vec<Vec<char>> ) -> i32 {
+
+    let mut row : usize = 0;
+    let mut col : usize = 0;
+    let mut seated_count = 0;
+
+    loop {
+
+        // execute rules
+    }
+
+    seated_count
+}
+
 
 // The output is wrapped in a Result to allow matching on errors
 // Returns an Iterator to the Reader of the lines of the file.
