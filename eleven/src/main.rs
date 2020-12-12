@@ -27,7 +27,7 @@ fn main() {
     let mut last_seated = 0;
     loop {
 
-        seated = perform_round( &data );
+        seated = perform_round( &mut data );
         if last_seated == seated {
             break;
         }
@@ -37,7 +37,7 @@ fn main() {
     }
 }
 
-fn perform_round( seat_map : &Vec<Vec<char>> ) -> i32 {
+fn perform_round( seat_map : &mut Vec<Vec<char>> ) -> i32 {
 
     let mut row : usize = 0;
     let mut col : usize = 0;
@@ -50,6 +50,7 @@ fn perform_round( seat_map : &Vec<Vec<char>> ) -> i32 {
 
     seated_count
 }
+
 
 
 // The output is wrapped in a Result to allow matching on errors
