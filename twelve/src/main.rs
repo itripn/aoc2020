@@ -10,10 +10,11 @@ struct Direction {
 
 fn main() {
 
+    println!("Starting...");
     let mut directions : Vec<Direction> = Vec::new();
 
     // Read lines into a vector
-    //
+    
     if let Ok(lines) = read_lines("./input.txt") {
 
         // Consumes the iterator, returns an (Optional) String
@@ -36,16 +37,20 @@ fn main() {
         }
     }
 
-    follow_directions( &directions );
+    let (eastwest, northsouth) = follow_directions( &directions );
+
+    println!( "{} + {} = {}", eastwest, northsouth, eastwest + northsouth );
 }
 
-fn follow_directions( directions : &Vec<Direction> ) {
+fn follow_directions( directions : &Vec<Direction> ) -> ( i32, i32 ) {
 
     let mut northsouth = 0;
     let mut eastwest = 0;
     let mut curdirection = 0;
 
     for dir in directions {
+
+        // println!( "{}, {} - {}", eastwest, northsouth, curdirection );
 
         match dir.direction {
 
@@ -64,9 +69,11 @@ fn follow_directions( directions : &Vec<Direction> ) {
             'W' => eastwest = eastwest - dir.distance,
 
             'L' => {
+
                 curdirection = curdirection - dir.distance;
                 if curdirection < 0 {
 
+                    curdirection = 360 + curdirection;
                     
                 }
                 else if curdirection > 360 {
@@ -75,12 +82,15 @@ fn follow_directions( directions : &Vec<Direction> ) {
             },
             'R' => {
                 
+                curdirection = ( curdirection + dir.distance ) % 360;
+
             },
 
             _ => ()
         }
     }
 
+    ( eastwest.abs(), northsouth.abs() )
 }
 
 // The output is wrapped in a Result to allow matching on errors
