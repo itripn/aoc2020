@@ -11,7 +11,8 @@ fn main() {
     //
     let busses : Vec<i32> = bus_line_str.filter(|&b| b != "x" ).map(|b| b.parse::<i32>().unwrap()).collect();
 
-    // get the range of times based on our input start time
+    // get the range of times based on our input start time -- give a little room on the end to find
+    // the right time... TODO: should just add max(bus line #) here.
     //
     let times : Vec<i32> = ((earliest_time)..(earliest_time + 100)).collect();
 
