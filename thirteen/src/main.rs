@@ -7,9 +7,22 @@ fn main() {
     let bus_line_str = "19,x,x,x,x,x,x,x,x,41,x,x,x,x,x,x,x,x,x,523,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,17,13,x,x,x,x,x,x,x,x,x,x,29,x,853,x,x,x,x,x,37,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,23".split( ',' );
     let earliest_time = 1000510;
 
+    // let (bus_id, min_wait) = lines[1]
+    //     .split(',')
+    //     .filter(|s| s != &"x")
+    //     .map(|id| id.parse::<usize>().unwrap())
+    //     .map(|id| (id, id - (earliest_timestamp % id)))
+    //     .min_by_key(|pair| pair.1)
+    //     .unwrap();
+    //
+    // bus_id * min_wait
+
     // pull the busses out, getting rid of the x's and converting to integers
     //
-    let busses : Vec<i32> = bus_line_str.filter(|&b| b != "x" ).map(|b| b.parse::<i32>().unwrap()).collect();
+    let busses : Vec<i32> = bus_line_str
+            .filter(|&b| b != "x" )
+            .map(|b| b.parse::<i32>().unwrap())
+            .collect();
 
     // get the range of times based on our input start time -- give a little room on the end to find
     // the right time... TODO: should just add max(bus line #) here.
@@ -57,6 +70,7 @@ fn find_earliest_time( times : &Vec<i32>, busses : &Vec<i32> ) -> ( i32, i32 ) {
 //
 fn dump_time_table( times : &Vec<i32>, busses : &Vec<i32> ) {
 
+    println!("\n\n");
     busses.iter().for_each(|b| print!("\t{}", b) );
     println!();
     for t in times {
