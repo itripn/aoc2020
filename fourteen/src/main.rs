@@ -2,24 +2,19 @@ use regex::Regex;
 use std::fs;
 
 fn main() {
-
     let contents = fs::read_to_string("input.txt").expect("Error");
     let program: Vec<&str> = contents.split('\n').collect();
-    
-    
+
     parta(&program);
-    
 }
 
 fn parta(program: &Vec<&str>) {
-
     let mut memory: Vec<u64> = vec![0; 64 * 1024];
     let mut current_mask = String::new();
     let mask_re = Regex::new(r"mask = (.*)$").unwrap();
     let mem_re = Regex::new(r"mem\[(\d+)\] = (\d+)$").unwrap();
 
     program.iter().for_each(|&instr| {
-        
         let mask_cap = mask_re.captures(instr);
 
         match mask_cap {
