@@ -1,50 +1,43 @@
-
 use std::collections::HashMap;
 
+// ****** Solution from @mahrgrell on github... studying it...
+//
+//
 fn main() {
 
-    let mut starting_numbers : Vec<i32> = vec![0,3,6]; //vec![1,0,18,10,19];
-    let mut numbers : Vec<i32> = Vec::new();
+    let start = vec![1, 0, 18, 10, 19, 6];
+    let mut hm = HashMap::new();
+    let mut pos = 0;
+    let mut next_n = 0;
 
-    numbers.append( &mut starting_numbers );
+    for v in start {
 
-    parta( numbers );
-}
-
-fn parta( numbers : Vec<i32> ) {
-
-    let mut cur_idx = 1;
-    let mut last_spoken;
-    let mut seen_numbers : HashMap<i32,usize> = HashMap::new();
-
-    for n in numbers.iter().take(numbers.len()-1) {
-        println!("{}: {}", cur_idx, n);
-        seen_numbers.insert(*n, cur_idx );
-        cur_idx += 1;
-    }
-    last_spoken = *numbers.last().unwrap();
-
-    println!("-----");
-    loop {
-
-        println!("Turn: {}: {}", cur_idx, last_spoken);
-
-        // println!("{}: speaking {}", cur_idx, last_spoken );
-        if seen_numbers.contains_key( &last_spoken ) {
-
-            let lidx = seen_numbers.get( &last_spoken ).unwrap();
-            last_spoken = ( cur_idx - lidx ) as i32;
+        pos += 1;
+        next_n = if let Some(last_pos) = hm.get(&v) {
+            pos - *last_pos
         }
         else {
-            seen_numbers.insert( last_spoken, cur_idx );
-            last_spoken = 0;
-        }
+            0
+        };
 
-        cur_idx += 1;
-        if cur_idx > 2020 {
-            break;
-        }
+        hm.insert(v, pos);
     }
 
-    println!("{}", last_spoken);
+    while pos < 29_999_999 {
+        //println!("{} - {} - {:?}", pos, next_n, hm);
+        let n = next_n;
+        pos += 1;
+        next_n = if let Some(last_pos) = hm.get(&n) {
+            pos - *last_pos
+        }
+        else {
+            0
+        };
+        hm.insert(n, pos);
+        if pos == 2019 {
+            println!("2020 solution: {}", next_n);
+        }
+        //println!("{}: {}", pos, n);
+    }
+    println!("Result is {}", next_n);
 }

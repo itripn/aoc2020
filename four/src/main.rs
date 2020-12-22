@@ -4,25 +4,161 @@ use std::io::{self, BufRead};
 use std::path::Path;
 use regex::Regex;
 
-// ecl:gry pid:860033327 eyr:2020 hcl:#fffffd       // Valid
-// byr:1937 iyr:2017 cid:147 hgt:183cm
-//
-// iyr:2013 ecl:amb cid:350 eyr:2023 pid:028048884  // Invalid
-// hcl:#cfa07d byr:1929
-//
-// hcl:#ae17e1 iyr:2013                             // Valid
-// eyr:2024
-// ecl:brn pid:760753108 byr:1931
-// hgt:179cm
-//
-// hcl:#cfa07d eyr:2025 pid:166559648               // Invalid
-// iyr:2011 ecl:brn hgt:59in
+
+#[derive(Debug)]
+struct Passport {
+
+    pps: String,
+    ecl : Option<String>,
+    byr : Option<String>,
+    iyr : Option<String>,
+    eyr : Option<String>,
+    hgt : Option<(String,String)>,
+    hcl : Option<String>,
+    pid : Option<String>,
+    _cid : Option<String>
+}
+
+impl Passport {
+
+    // Parse a passport from the raw text line
+    // into our structure fields. 
+    //
+    fn parse_passport( pp : &String ) -> Self {
+
+        Passport {
+            pps: pp.clone(),
+            pid: parse_pid( &pp ),
+            ecl: parse_eye_color( &pp ),
+            byr: parse_year( &pp, "byr:" ),
+            iyr: parse_year( &pp, "iyr:" ),
+            eyr: parse_year( &pp, "eyr:"),
+            hgt: parse_height( &&pp ),
+            hcl: parse_hair_color( &pp ),
+            _cid: None,
+        }
+    }
+
+    // Do a quick sanity check that the required 
+    // fields exist -- does NOT check to see if
+    // they have the right values. See 
+    // fn deep_valid() below
+    //
+    fn shallow_valid( &self ) -> bool {
+
+         self.pps.contains( "byr:" ) &&
+         self.pps.contains( "iyr:" ) &&
+         self.pps.contains( "eyr:" ) &&
+         self.pps.contains( "hgt:" ) &&
+         self.pps.contains( "hcl:" ) &&
+         self.pps.contains( "ecl:" ) &&
+         self.pps.contains( "pid:" )
+
+    }
+
+    // Validate our fields have some data in them, 
+    // helps with deep_valid() below.
+    //
+    fn valid( &self ) -> bool {
+
+        return  self.byr != None &&
+                self.iyr != None &&
+                self.eyr != None &&
+                self.hgt != None &&
+                self.hcl != None &&
+                self.ecl != None &&
+                self.pid != None;
+    }
+
+    // byr (Birth Year) - four digits; at least 1920 and at most 2002.
+    // iyr (Issue Year) - four digits; at least 2010 and at most 2020.
+    // eyr (Expiration Year) - four digits; at least 2020 and at most 2030.
+    // hgt (Height) - a number followed by either cm or in:
+    // If cm, the number must be at least 150 and at most 193.
+    // If in, the number must be at least 59 and at most 76.
+    // hcl (Hair Color) - a # followed by exactly six characters 0-9 or a-f.
+    // ecl (Eye Color) - exactly one of: amb blu brn gry grn hzl oth.
+    // pid (Passport ID) - a nine-digit number, including leading zeroes.
+    // cid (Country ID) - ignored, missing or not.
+    //
+    // Check values and make sure they're within range.
+    //
+    fn deep_valid( &self ) -> bool {
+
+        if !self.valid() {
+            return false;
+        }
+
+        if !self.shallow_valid() {
+            return false;
+        }
+
+        // let byrt = self.byr.clone();
+        let byr = self.byr.clone().unwrap().parse::<i32>().unwrap().clone();
+        if byr < 1920 || byr > 2002 {
+            return false;
+        }
+
+        let iyr = self.iyr.clone().unwrap().parse::<i32>().unwrap();
+        if iyr < 2010 || iyr > 2020 {
+            return false;
+        }
+
+        let eyr = self.eyr.clone().unwrap().parse::<i32>().unwrap();
+        if eyr < 2020 || eyr > 2030 {
+            return false;
+        }
+
+        if self.pid == None || self.pid.clone().unwrap().len() != 9 {
+            return false;
+        }
+
+        let unit = self.hgt.clone().unwrap().1; // unit
+        let val = self.hgt.clone().unwrap().clone().0.parse::<i32>().unwrap();
+        match &unit[..] {
+
+            "cm" => {
+                if val < 150 || val > 193 {
+                    return false;
+                }
+            },
+
+            "in" => {
+                if val < 59 || val > 76 {
+                    return false;
+                }
+            },
+            _ => return false
+        }
+
+        true
+    }
+}
 
 fn main() {
 
-    let mut ppdata : Vec<String> = Vec::new();
+    let ppdata = parse_input( "./input1.txt" );
 
-    if let Ok(lines) = read_lines("./input.txt") {
+    let parta_results = count_valid_passports( &ppdata );
+    println!( "Part A valid passports: {}", parta_results ); 
+    
+    ////////////////////////////////////////////////////////////////
+    ///// FIXME -- code is counting ONE extra passport as valid! ///
+    ////////////////////////////////////////////////////////////////
+    //
+    let partb_results = count_valid_passports_and_field_ranges( &ppdata ) ;
+    println!( "Part B valid passports: {}", partb_results ); 
+}
+
+// Parse the input into single line passports that can then be parsed
+// by the Passport object. 
+//
+fn parse_input( filename : &str ) -> Vec<Passport> {
+
+    let mut ppdata : Vec<Passport> = Vec::new();
+
+    if let Ok(lines) = read_lines( filename ) {
+
         // Consumes the iterator, returns an (Optional) String
 
         let mut str_buf : String = String::new();
@@ -35,66 +171,44 @@ fn main() {
                     str_buf.push_str( &(ppline + " ") );
                 }
                 else {
-                    // println!( "{}", str_buf );
-                    ppdata.push( str_buf.clone() );
+                    ppdata.push( Passport::parse_passport( &str_buf ) );
                     str_buf.clear();
                 }
             }
         }
+
         // if there isn't a blank line at the end of the input, we'll likely have a buffer
         // still to process
         //
         if str_buf.len() > 0 {
-            ppdata.push( str_buf.clone() );
+            ppdata.push( Passport::parse_passport( &str_buf ) );
         }
     }
 
-    ////////////////////////////////////////////////////////////////
-    ///// FIXME -- code is counting ONE extra passport as valid! ///
-    ////////////////////////////////////////////////////////////////
-    let valid_passports = count_valid_passports( &ppdata ) ;
-    println!( "Valid passports: {}", valid_passports ); 
+    ppdata
+}
+
+fn count_valid_passports( passports : &Vec<Passport> ) -> i32 {
+
+    return passports
+            .iter()
+            //.inspect(|p| println!("{:?}", p))
+            .map( |p| if p.shallow_valid() { 1 } else { 0 } )
+            .sum();
 }
 
 
-// byr (Birth Year) - four digits; at least 1920 and at most 2002.
-// iyr (Issue Year) - four digits; at least 2010 and at most 2020.
-// eyr (Expiration Year) - four digits; at least 2020 and at most 2030.
-// hgt (Height) - a number followed by either cm or in:
-// If cm, the number must be at least 150 and at most 193.
-// If in, the number must be at least 59 and at most 76.
-// hcl (Hair Color) - a # followed by exactly six characters 0-9 or a-f.
-// ecl (Eye Color) - exactly one of: amb blu brn gry grn hzl oth.
-// pid (Passport ID) - a nine-digit number, including leading zeroes.
-// cid (Country ID) - ignored, missing or not.
+fn count_valid_passports_and_field_ranges( passports : &Vec<Passport> ) -> i32 {
 
-fn count_valid_passports( passports : &Vec<String> ) -> i32 {
+        return passports
+            .iter()
+            //.inspect(|p| println!("{:?}", p))
+            .map( |p| if p.deep_valid() { 1 } else { 0 } )
+            .sum();
 
-    let mut valid_count = 0;
-
-    for passport in passports {
-
-        let byr = passport.contains( "byr:" ) && validate_year( &passport, "byr:", (1920, 2002) );
-        let iyr = passport.contains( "iyr:" ) && validate_year( &passport, "iyr:", (2010, 2020) );
-        let eyr = passport.contains( "eyr:" ) && validate_year( &passport, "eyr:", (2020, 2030) );
-        let hgt = passport.contains( "hgt:" ) && validate_height( &passport, (150,193,59,76) );
-        let hcl = passport.contains( "hcl:" ) && validate_hair_color( &passport );
-        let ecl = passport.contains( "ecl:" ) && validate_eye_color( &passport );
-        let pid = passport.contains( "pid:" ) && validate_pid( &passport );
-        
-        // println!( "{} {} {} {} {} {} {}", byr, iyr, eyr, hgt, hcl, ecl, pid );
-        if byr && iyr && eyr && hgt && hcl && ecl && pid {
-            valid_count = valid_count + 1;
-        }
-        else {
-            // println!( "bad: {}\n", passport );
-        }
-    }
-
-    valid_count
 }
 
-fn validate_pid( passport : &String ) -> bool {
+fn parse_pid( passport : &String ) -> Option<String> {
 
     let re = Regex::new(r"pid:(\d{9})").unwrap();
     let cap = re.captures( passport );
@@ -102,38 +216,44 @@ fn validate_pid( passport : &String ) -> bool {
     match cap {
 
         Some(_c) => {
-            // println!( "pid: {}", c.get(1).unwrap().as_str() );
-            true
+            Some( String::from( _c.get(1).unwrap().as_str() ) )
         },
 
-        None => { /*println!("bad pp: {}", passport );*/ false }
+        None => { /*println!("bad pid: {}", passport);*/ None }
     }
 }
 
-fn validate_hair_color( passport : &String ) -> bool {
+fn parse_hair_color( passport : &String ) -> Option<String> {
 
     let re = Regex::new( r"hcl:(\#[0-9a-f]{6})" ).unwrap();
     let cap = re.captures( passport );
+
     match cap {
-        Some(_c) => { /*println!( "hcl: {}", c.get(1).unwrap().as_str() );*/ return true; },
-        None => { /*println!("bad hcl: {}", passport);*/ false }
+
+        Some(_c) => { Some( String::from( _c.get(1).unwrap().as_str() ) ) },
+
+        None => { /*println!("bad hcl: {}", passport);*/ None }
     }
 }
 
-fn validate_eye_color( passport : &String ) -> bool {
+fn parse_eye_color( passport : &String ) -> Option<String> {
 
     let re = Regex::new( r"ecl:(amb|blu|brn|gry|grn|hzl|oth)" ).unwrap();
     let cap = re.captures( passport );
+
     match cap {
-        Some(_c) => { /*println!( "ecl: {}", _c.get(1).unwrap().as_str() );*/ return true; },
-        None => { /*println!("bad ecl: {}", passport );*/ false}
+
+        Some(_c) => { Some( String::from( _c.get(1).unwrap().as_str() ) ) },
+        
+        None => { /*println!("bad ecl: {}", passport);*/ None }
     }
 }
 
-fn validate_height( passport : &String, bounds : (i32,i32,i32,i32) ) -> bool {
+fn parse_height( passport : &String ) -> Option<(String, String)> {
 
     let re = Regex::new( r"hgt:(\d{2,3})(cm|in)" ).unwrap();
     let cap = re.captures( passport );
+
     match cap {
 
         Some(c) => { 
@@ -141,22 +261,11 @@ fn validate_height( passport : &String, bounds : (i32,i32,i32,i32) ) -> bool {
             let hgt_str = c.get(1).unwrap().as_str();
             let unit_str = c.get(2).unwrap().as_str();
 
-            let hgt = hgt_str.parse::<i32>().unwrap();
-            let good_height =  match unit_str {
+            Some( (String::from(hgt_str), String::from(unit_str) ) )
 
-                "cm" =>  hgt >= bounds.0 && hgt <= bounds.1,
-                "in" =>  hgt >= bounds.2 && hgt <= bounds.3,
-                _ => return false
-            };
-
-            // println!("height: {}", good_height );
-            if !good_height {
-                println!("bad hgt: {}\n", passport );
-            }
-
-            good_height
         },
-        None => false
+
+        None => { /*println!("bad hgt: {}", passport);*/ None }
     }
 }
 
@@ -171,24 +280,19 @@ fn get_regex( field : &str ) -> &str {
     }
 }
 
-fn validate_year( passport : &String, field : &str, bounds : (i32, i32) ) -> bool {
+fn parse_year( passport : &String, field : &str ) -> Option<String> {
+
 
     let re = Regex::new(get_regex( field ) ).unwrap();
     let cap = re.captures( passport );
+
     match cap {
 
-        Some(c) => { 
-
-            let year_str = c.get(1).unwrap().as_str();
-            let year = year_str.parse::<i32>().unwrap();
-
-            let good_year = year >= bounds.0 && year <= bounds.1;
-            // println!("year: {}, ({} - {},{})", good_year, year, bounds.0, bounds.1 );
-
-            good_year
+        Some(_c) => { 
+            Some( String::from( _c.get(1).unwrap().as_str() ) )
         },
 
-        None => false
+        None => { /*println!("bad {} {}", field, passport);*/ None }
     }
 }
 
