@@ -2,6 +2,7 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
+#[macro_use] extern crate lazy_static;
 
 mod passport;
 use passport::*;
@@ -63,7 +64,6 @@ fn count_valid_passports( passports : &Vec<Passport> ) -> i32 {
 
     return passports
             .iter()
-            //.inspect(|p| println!("{:?}", p))
             .map( |p| if p.shallow_valid() { 1 } else { 0 } )
             .sum();
 }
@@ -73,7 +73,6 @@ fn count_valid_passports_and_field_ranges( passports : &Vec<Passport> ) -> i32 {
 
         return passports
             .iter()
-            //.inspect(|p| println!("{:?}", p))
             .map( |p| if p.deep_valid() { 1 } else { 0 } )
             .sum();
 }

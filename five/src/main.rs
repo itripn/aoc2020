@@ -17,29 +17,26 @@ fn main() {
         }
     }
 
-    let mut seats = Vec::<(i32,i32)>::new();
-    for pass in boardingpasses {
+    let seats : Vec<(i32,i32)> = boardingpasses
+        .iter()
+        .map( |b| find_seat( &b ) )
+        .collect();
 
-        // println!( "looking at: {}", pass );
-        let seat = find_seat( &pass );
-        seats.push( seat );
-    }
 
-    let mut seat_ids = Vec::<i32>::new();
-
-    for seat in seats {
-
-        seat_ids.push( seat.0 * 8 + seat.1 );
-    }
+    let mut seat_ids : Vec<i32> = seats
+        .iter()
+        .map( |seat| seat.0 * 8 + seat.1 )
+        .collect();
 
     println!("Largest seat id: {}", seat_ids.iter().max().unwrap() );
+   
     seat_ids.sort();
-
     let mut last_seat_id = seat_ids[0] - 1;
     for seat_id in seat_ids {
 
         if seat_id - last_seat_id > 1 {
             println!("Your seat is: {}", seat_id -1 );
+            break;
         }
         
         last_seat_id = seat_id;
@@ -62,10 +59,9 @@ fn find_seat( pass : &String ) -> (i32, i32) {
             'B' => row_min = row_min + ( row_max - row_min ) / 2 + 1,
             'L' => seat_max = seat_min + ( seat_max - seat_min ) / 2 ,
             'R' => seat_min = seat_min + ( seat_max - seat_min ) / 2 + 1,
+
             _ => println!("invalid bp code")
         }
-        
-        // println!("({},{}), ({},{})", row_min, row_max, seat_min, seat_max );
     }
 
     assert_eq!( row_max, row_min );

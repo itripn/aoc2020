@@ -1,6 +1,17 @@
 use regex::Regex;
 
-#[derive(Debug)]
+
+// Compile our regex once and as late as possible
+//
+lazy_static! {
+
+        static ref PID_RE : Regex = Regex::new(r"pid:(\d{9})\b").unwrap();
+        static ref HCL_RE : Regex = Regex::new(r"hcl:(\#[0-9a-f]{6})\b").unwrap();
+        static ref ECL_RE : Regex = Regex::new(r"ecl:(amb|blu|brn|gry|grn|hzl|oth)\b").unwrap();
+        static ref HGT_RE : Regex = Regex::new(r"hgt:(\d{2,3})(cm|in)\b").unwrap();
+}
+
+// #[derive(Debug)]
 pub struct Passport {
     pps: String,
     ecl: Option<String>,
@@ -27,7 +38,7 @@ impl Passport {
                    eyr: Passport::parse_year(&pp, "eyr:"),
                    hgt: Passport::parse_height(&&pp),
                    hcl: Passport::parse_hair_color(&pp),
-                   _cid: None }
+                  _cid: None }
     }
 
     // Do a quick sanity check that the required
@@ -116,8 +127,8 @@ impl Passport {
     }
 
     fn parse_pid(passport: &String) -> Option<String> {
-        let re = Regex::new(r"pid:(\d{9})\b").unwrap();
-        let cap = re.captures(passport);
+
+        let cap = PID_RE.captures(passport);
 
         match cap {
             Some(_c) => Some(String::from(_c.get(1).unwrap().as_str())),
@@ -130,8 +141,8 @@ impl Passport {
     }
 
     fn parse_hair_color(passport: &String) -> Option<String> {
-        let re = Regex::new(r"hcl:(\#[0-9a-f]{6})\b").unwrap();
-        let cap = re.captures(passport);
+
+        let cap = HCL_RE.captures(passport);
 
         match cap {
             Some(_c) => Some(String::from(_c.get(1).unwrap().as_str())),
@@ -144,8 +155,8 @@ impl Passport {
     }
 
     fn parse_eye_color(passport: &String) -> Option<String> {
-        let re = Regex::new(r"ecl:(amb|blu|brn|gry|grn|hzl|oth)\b").unwrap();
-        let cap = re.captures(passport);
+
+        let cap = ECL_RE.captures(passport);
 
         match cap {
             Some(_c) => Some(String::from(_c.get(1).unwrap().as_str())),
@@ -158,8 +169,8 @@ impl Passport {
     }
 
     fn parse_height(passport: &String) -> Option<(String, String)> {
-        let re = Regex::new(r"hgt:(\d{2,3})(cm|in)\b").unwrap();
-        let cap = re.captures(passport);
+
+        let cap = HGT_RE.captures(passport);
 
         match cap {
             Some(c) => {
@@ -186,6 +197,7 @@ impl Passport {
     }
 
     fn parse_year(passport: &String, field: &str) -> Option<String> {
+              
         let re = Regex::new(Passport::get_regex(field)).unwrap();
         let cap = re.captures(passport);
 
